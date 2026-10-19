@@ -21,6 +21,12 @@ const DEFAULT_CHORES: Chore[] = [
   { id: "dinner", name: "Dinner", emoji: "🍲", required: 1, frequency: "daily", days: [0, 1, 2, 3, 4, 5, 6] },
 ];
 
+const SEEDED_PERSON_IDS = new Set(["alex", "bea", "nico", "rita", "sam", "tino"]);
+
+function isSeededCrew(people: Person[]): boolean {
+  return people.length === SEEDED_PERSON_IDS.size && people.every((person) => SEEDED_PERSON_IDS.has(person.id));
+}
+
 function initialState(): BoatState {
   const weekStart = dateKey(startOfWeek(new Date()));
   const people: Person[] = [];
@@ -51,11 +57,12 @@ function App() {
   useEffect(() => {
     loadState().then((saved) => {
       if (saved) {
-        const freshOnboardingState = !saved.onboardingComplete
+        const shouldClearSeededCrew = isSeededCrew(saved.people);
+        const freshOnboardingState = shouldClearSeededCrew || !saved.onboardingComplete
           ? { ...saved, people: [], schedule: generateWeek([], saved.chores, saved.weekStart) }
           : saved;
         setState({ ...freshOnboardingState, schedule: repairDuplicateTaskAssignments(freshOnboardingState.schedule) });
-        setShowOnboarding(!saved.onboardingComplete);
+        setShowOnboarding(shouldClearSeededCrew || !saved.onboardingComplete);
       } else setShowOnboarding(true);
       setLoaded(true);
     });
