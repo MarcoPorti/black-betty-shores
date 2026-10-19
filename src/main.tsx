@@ -37,10 +37,6 @@ function uid(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function initials(name: string): string {
-  return name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
-}
-
 function App() {
   const [state, setState] = useState<BoatState>(() => initialState());
   const [loaded, setLoaded] = useState(false);
@@ -252,25 +248,51 @@ function ChoreAssignmentRow({ chore, slots, people, setAssignment }: { chore: Ch
 function PeopleView({ state, updateState, onRegenerate }: { state: BoatState; updateState: (next: Partial<BoatState>) => void; onRegenerate: () => void }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
-  function addPerson(event: FormEvent) { event.preventDefault(); if (!newName.trim()) return; const person: Person = { id: uid("person"), name: newName.trim(), arrival: state.weekStart, departure: dateKey(addDays(parseDateKey(state.weekStart), 8)), cannot: [], prefers: [], dislikes: [] }; updateState({ people: [...state.people, person] }); setNewName(""); setShowAdd(false); }
+  const [alreadyHere, setAlreadyHere] = useState(true);
+  const [newArrival, setNewArrival] = useState(state.weekStart);
+  const [newDeparture, setNewDeparture] = useState(dateKey(addDays(parseDateKey(state.weekStart), 8)));
+  const [newCannot, setNewCannot] = useState<string[]>([]);
+  const [newPrefers, setNewPrefers] = useState<string[]>([]);
+  const [newDislikes, setNewDislikes] = useState<string[]>([]);
+  function toggleNewRule(kind: "cannot" | "prefers" | "dislikes", choreId: string) {
+    const setters = { cannot: setNewCannot, prefers: setNewPrefers, dislikes: setNewDislikes };
+    const values = { cannot: newCannot, prefers: newPrefers, dislikes: newDislikes };
+    setters[kind](values[kind].includes(choreId) ? values[kind].filter((id) => id !== choreId) : [...values[kind], choreId]);
+  }
+  function addPerson(event: FormEvent) {
+    event.preventDefault();
+    if (!newName.trim()) return;
+    const person: Person = { id: uid("person"), name: newName.trim(), arrival: alreadyHere ? dateKey(addDays(parseDateKey(state.weekStart), -1)) : newArrival, departure: newDeparture, cannot: newCannot, prefers: newPrefers, dislikes: newDislikes };
+    updateState({ people: [...state.people, person] });
+    setNewName("");
+    setAlreadyHere(true);
+    setNewArrival(state.weekStart);
+    setNewDeparture(dateKey(addDays(parseDateKey(state.weekStart), 8)));
+    setNewCannot([]);
+    setNewPrefers([]);
+    setNewDislikes([]);
+    setShowAdd(false);
+  }
   function updatePerson(id: string, patch: Partial<Person>) { updateState({ people: state.people.map((person) => person.id === id ? { ...person, ...patch } : person) }); }
   function deletePerson(id: string) { if (!window.confirm("Remove this person from the boat? Their existing assignments will become open spots.")) return; updateState({ people: state.people.filter((person) => person.id !== id), schedule: Object.fromEntries(Object.entries(state.schedule).map(([date, assignments]) => [date, assignments.map((assignment) => assignment.personId === id ? { ...assignment, personId: null } : assignment)])) }); }
   return <><PageHeader eyebrow="THE CREW" title="Who’s aboard?" description="Arrival and departure dates keep assignments honest. Both dates stay off the rota." action={<button className="button primary" onClick={() => setShowAdd(true)}><Plus size={16} />Add person</button>} />
     <div className="info-callout"><Info size={17} /><span>Dates are inclusive for travel: someone arriving on Tuesday can start Wednesday, and someone leaving Tuesday can work Monday.</span></div>
-    <section className="people-stack">{state.people.map((person) => <PersonCard key={person.id} person={person} chores={state.chores} updatePerson={updatePerson} deletePerson={deletePerson} />)}</section>
+    <section className="people-stack">{state.people.map((person) => <PersonCard key={person.id} person={person} chores={state.chores} weekStart={state.weekStart} updatePerson={updatePerson} deletePerson={deletePerson} />)}</section>
     <div className="bottom-action"><button className="button secondary" onClick={onRegenerate}><RefreshCw size={15} />Update assignments with these rules</button></div>
-    {showAdd && <Modal title="Add a crew member" onClose={() => setShowAdd(false)}><form onSubmit={addPerson} className="form-stack"><label>Name<input autoFocus value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="e.g. Jamie" /></label><div className="modal-actions"><button type="button" className="button ghost" onClick={() => setShowAdd(false)}>Cancel</button><button type="submit" className="button primary">Add person</button></div></form></Modal>}
+    {showAdd && <Modal title="Add a crew member" onClose={() => setShowAdd(false)}><form onSubmit={addPerson} className="form-stack"><label>Name<input autoFocus required value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="e.g. Jamie" /></label><label className="checkbox-label"><input type="checkbox" checked={alreadyHere} onChange={(event) => setAlreadyHere(event.target.checked)} /><span><strong>Already here</strong><small>Assume this person can be assigned from the start of the week.</small></span></label>{!alreadyHere && <label>Arrives<input type="date" required value={newArrival} onChange={(event) => setNewArrival(event.target.value)} /></label>}<label>Leaves<input type="date" required value={newDeparture} onChange={(event) => setNewDeparture(event.target.value)} /></label><div className="rule-groups"><RuleGroup label="Cannot do" hint="strict" tone="danger" selected={newCannot} chores={state.chores} onToggle={(id) => toggleNewRule("cannot", id)} /><RuleGroup label="Prefers" hint="soft" tone="good" selected={newPrefers} chores={state.chores} onToggle={(id) => toggleNewRule("prefers", id)} /><RuleGroup label="Dislikes" hint="soft" tone="warn" selected={newDislikes} chores={state.chores} onToggle={(id) => toggleNewRule("dislikes", id)} /></div><div className="modal-actions"><button type="button" className="button ghost" onClick={() => setShowAdd(false)}>Cancel</button><button type="submit" className="button primary">Add person</button></div></form></Modal>}
   </>;
 }
 
-function PersonCard({ person, chores, updatePerson, deletePerson }: { person: Person; chores: Chore[]; updatePerson: (id: string, patch: Partial<Person>) => void; deletePerson: (id: string) => void }) {
+function PersonCard({ person, chores, weekStart, updatePerson, deletePerson }: { person: Person; chores: Chore[]; weekStart: string; updatePerson: (id: string, patch: Partial<Person>) => void; deletePerson: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   function toggle(kind: "cannot" | "prefers" | "dislikes", choreId: string) { const list = person[kind]; updatePerson(person.id, { [kind]: list.includes(choreId) ? list.filter((id) => id !== choreId) : [...list, choreId] }); }
-  return <article className={`person-card ${expanded ? "expanded" : ""}`}><div className="person-main"><span className="large-avatar">{initials(person.name)}</span><div className="person-identity"><input className="person-name" value={person.name} onChange={(event) => updatePerson(person.id, { name: event.target.value })} /><span className="person-dates">{formatShortDate(person.arrival)} → {formatShortDate(person.departure)} <small>(travel days excluded)</small></span></div><button className="icon-button" onClick={() => setExpanded(!expanded)} aria-label="Edit crew member"><ChevronDown size={17} className={expanded ? "rotate" : ""} /></button></div>{expanded && <div className="person-details"><div className="date-fields"><label>Arrives<input type="date" value={person.arrival} onChange={(event) => updatePerson(person.id, { arrival: event.target.value })} /></label><label>Leaves<input type="date" value={person.departure} onChange={(event) => updatePerson(person.id, { departure: event.target.value })} /></label></div><div className="rule-groups"><RuleGroup label="Cannot do" hint="strict" tone="danger" selected={person.cannot} chores={chores} onToggle={(id) => toggle("cannot", id)} /><RuleGroup label="Prefers" hint="soft" tone="good" selected={person.prefers} chores={chores} onToggle={(id) => toggle("prefers", id)} /><RuleGroup label="Dislikes" hint="soft" tone="warn" selected={person.dislikes} chores={chores} onToggle={(id) => toggle("dislikes", id)} /></div><button className="delete-link" onClick={() => deletePerson(person.id)}><Trash2 size={14} />Remove {person.name}</button></div>}</article>;
+  const alreadyHere = person.arrival < weekStart;
+  const firstDayHere = dateKey(addDays(parseDateKey(weekStart), -1));
+  return <article className={`person-card ${expanded ? "expanded" : ""}`}><div className="person-main"><div className="person-identity"><input className="person-name" value={person.name} onChange={(event) => updatePerson(person.id, { name: event.target.value })} /><span className="person-dates">{alreadyHere ? "Already here" : `Arrives ${formatShortDate(person.arrival)}`} → {formatShortDate(person.departure)} <small>(travel days excluded)</small></span></div><button className="icon-button" onClick={() => setExpanded(!expanded)} aria-label="Edit crew member"><ChevronDown size={17} className={expanded ? "rotate" : ""} /></button></div>{expanded && <div className="person-details"><div className="date-fields"><label className="checkbox-label"><input type="checkbox" checked={alreadyHere} onChange={(event) => updatePerson(person.id, { arrival: event.target.checked ? firstDayHere : (person.arrival < weekStart ? weekStart : person.arrival) })} /><span><strong>Already here</strong><small>Assume this person can work from the start of the week.</small></span></label>{!alreadyHere && <label>Arrives<input type="date" value={person.arrival} onChange={(event) => updatePerson(person.id, { arrival: event.target.value })} /></label>}<label>Leaves<input type="date" value={person.departure} onChange={(event) => updatePerson(person.id, { departure: event.target.value })} /></label></div><div className="rule-groups"><RuleGroup label="Cannot do" hint="strict" tone="danger" selected={person.cannot} chores={chores} onToggle={(id) => toggle("cannot", id)} /><RuleGroup label="Prefers" hint="soft" tone="good" selected={person.prefers} chores={chores} onToggle={(id) => toggle("prefers", id)} /><RuleGroup label="Dislikes" hint="soft" tone="warn" selected={person.dislikes} chores={chores} onToggle={(id) => toggle("dislikes", id)} /></div><button className="delete-link" onClick={() => deletePerson(person.id)}><Trash2 size={14} />Remove {person.name}</button></div>}</article>;
 }
 
 function RuleGroup({ label, hint, tone, selected, chores, onToggle }: { label: string; hint: string; tone: string; selected: string[]; chores: Chore[]; onToggle: (id: string) => void }) {
-  return <div className="rule-group"><div className="rule-heading"><strong>{label}</strong><span className={`rule-hint ${tone}`}>{hint}</span></div><div className="rule-chips">{chores.map((chore) => <button key={chore.id} className={`rule-chip ${selected.includes(chore.id) ? `selected ${tone}` : ""}`} onClick={() => onToggle(chore.id)}>{chore.emoji} {chore.name}</button>)}</div></div>;
+  return <div className="rule-group"><div className="rule-heading"><strong>{label}</strong><span className={`rule-hint ${tone}`}>{hint}</span></div><div className="rule-chips">{chores.map((chore) => <button type="button" key={chore.id} className={`rule-chip ${selected.includes(chore.id) ? `selected ${tone}` : ""}`} onClick={() => onToggle(chore.id)}>{chore.emoji} {chore.name}</button>)}</div></div>;
 }
 
 function ChoresView({ state, updateState, onRegenerate }: { state: BoatState; updateState: (next: Partial<BoatState>) => void; onRegenerate: () => void }) {
