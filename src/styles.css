@@ -165,6 +165,7 @@ select { border: 1px solid rgba(113, 157, 151, .24); border-radius: 8px; color: 
 .person-expand-icon { flex: 0 0 auto; color: var(--muted); transition: transform .18s ease; }
 .person-detail-name { margin-bottom: 2px; }
 .person-name-input { width: 100%; border: 1px solid rgba(113, 157, 151, .22); border-radius: 7px; color: #e7f0e8; background: rgba(10, 25, 30, .54); padding: 9px 10px; font: 14px "DM Sans", sans-serif; outline: 0; text-transform: none; letter-spacing: 0; }
+.crew-summary { margin-bottom: 28px; }
 .rotate { transform: rotate(180deg); }
 .person-details { border-top: 1px solid rgba(98, 143, 139, .17); padding: 18px 18px 16px; background: rgba(11, 26, 31, .27); }
 .date-fields, .chore-setting-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
