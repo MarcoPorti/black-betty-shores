@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Ellipsis, Info, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Ellipsis, Info, Mail, MessageCircle, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
 import { Assignment, BoatState, Chore, DAY_NAMES, Frequency, LONG_DAY_NAMES, Person, addDays, dateKey, formatRange, formatShortDate, parseDateKey, startOfWeek, weekDates } from "./types";
 import { generateDay, generateWeek, repairDuplicateTaskAssignments, warningsForDay } from "./lib/generator";
 import { decodeBackup, encodeBackup } from "./lib/backup";
@@ -9,7 +9,7 @@ import { downloadWeekPng } from "./lib/export";
 import { Button } from "./components/ui/button";
 import "./styles.css";
 
-type View = "week" | "people" | "chores" | "backup";
+type View = "week" | "people" | "chores" | "backup" | "help";
 
 const DEFAULT_CHORES: Chore[] = [
   { id: "water", name: "Water", emoji: "💧", required: 1, frequency: "daily", days: [0, 1, 2, 3, 4, 5, 6] },
@@ -195,6 +195,7 @@ function App() {
           {view === "people" && <PeopleView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "chores" && <ChoresView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "backup" && <BackupView backupText={backupText} restoreText={restoreText} setRestoreText={setRestoreText} copyBackup={copyBackup} restoreBackup={restoreBackup} error={backupError} />}
+          {view === "help" && <HelpView />}
         </main>
       </div>
       <MobileNav view={view} setView={setView} moreOpen={moreOpen} setMoreOpen={setMoreOpen} onBackup={openBackup} />
@@ -214,11 +215,11 @@ function MobileNav({ view, setView, moreOpen, setMoreOpen, onBackup }: { view: V
   }
   return <>
     {moreOpen && <button className="more-scrim" aria-label="Close more menu" onClick={() => setMoreOpen(false)} />}
-    {moreOpen && <div className="more-sheet"><div className="more-sheet-handle" /><div className="section-label">MORE ON DECK</div><button onClick={() => choose("chores")}><Settings2 size={17} /><span><strong>Chores & rules</strong><small>Adjust tasks and preferences.</small></span><ArrowRight size={15} /></button><button onClick={onBackup}><Share2 size={17} /><span><strong>Backup & share</strong><small>Copy or restore your boat setup.</small></span><ArrowRight size={15} /></button></div>}
+    {moreOpen && <div className="more-sheet"><div className="more-sheet-handle" /><div className="section-label">MORE ON DECK</div><button onClick={() => choose("chores")}><Settings2 size={17} /><span><strong>Chores & rules</strong><small>Adjust tasks and preferences.</small></span><ArrowRight size={15} /></button><button onClick={onBackup}><Share2 size={17} /><span><strong>Backup & share</strong><small>Copy or restore your boat setup.</small></span><ArrowRight size={15} /></button><button onClick={() => choose("help")}><MessageCircle size={17} /><span><strong>Help & improvement</strong><small>Report a problem or share an idea.</small></span><ArrowRight size={15} /></button></div>}
     <nav className="mobile-nav" aria-label="Mobile navigation">
       <button className={view === "week" ? "active" : ""} onClick={() => choose("week")}><CalendarDays size={19} /><span>Week</span></button>
       <button className={view === "people" ? "active" : ""} onClick={() => choose("people")}><Users size={19} /><span>Crew</span></button>
-      <button className={`${moreOpen || view === "chores" || view === "backup" ? "active" : ""}`} onClick={() => setMoreOpen(!moreOpen)}><Ellipsis size={20} /><span>More</span></button>
+      <button className={`${moreOpen || view === "chores" || view === "backup" || view === "help" ? "active" : ""}`} onClick={() => setMoreOpen(!moreOpen)}><Ellipsis size={20} /><span>More</span></button>
     </nav>
   </>;
 }
@@ -282,6 +283,10 @@ function ChoresView({ state, updateState, onRegenerate }: { state: BoatState; up
 
 function BackupView({ backupText, restoreText, setRestoreText, copyBackup, restoreBackup, error }: { backupText: string; restoreText: string; setRestoreText: (value: string) => void; copyBackup: () => void; restoreBackup: () => void; error: string | null }) {
   return <><PageHeader eyebrow="KEEP IT WITH YOU" title="Backup & restore" description="Your data stays on this device. Copy one compact backup whenever you want." /><div className="backup-layout single"><section className="surface backup-card"><div className="backup-icon"><Clipboard size={19} /></div><div className="section-label">COPY BACKUP</div><h2>Take your deck with you</h2><p>Paste this short, versioned backup into your notes, a crew chat, or a new device. It includes people, rules, chores, and the current week.</p><textarea className="backup-textarea" value={backupText} readOnly placeholder="Your backup will appear here…" spellCheck={false} /><div className="backup-actions"><button className="button primary" onClick={copyBackup}><Clipboard size={15} />Copy current backup</button></div></section></div><section className="surface restore-card"><div><div className="section-label">RESTORE BACKUP</div><h2>Paste a deck from anywhere</h2><p>Restoring overwrites the current setup only after you confirm.</p></div><div className="restore-row"><textarea className="backup-textarea" value={restoreText} onChange={(event) => setRestoreText(event.target.value)} placeholder="Paste a Tideboard backup here…" spellCheck={false} /><button className="button secondary" onClick={restoreBackup}>Validate & restore</button></div>{error && <div className="error-strip"><Info size={16} />{error}</div>}</section></>;
+}
+
+function HelpView() {
+  return <><PageHeader eyebrow="HELP & IMPROVEMENT" title="Help make Black Betty better" description="Found something broken or have an idea for the boat board? I’d love to hear from you." /><section className="surface help-card"><div className="help-intro"><div className="help-icon"><MessageCircle size={20} /></div><div><h2>Something not working?</h2><p>Tell me what happened, what you expected, and which device you were using. A screenshot is always helpful.</p></div></div><div className="help-contact-grid"><a className="help-contact" href="https://wa.me/393522666426" target="_blank" rel="noreferrer"><span className="help-contact-icon whatsapp"><MessageCircle size={18} /></span><span><strong>Write on WhatsApp</strong><small>+39 352 2666 426</small></span><ArrowRight size={16} /></a><a className="help-contact" href="mailto:portigliattimarco@gmail.com"><span className="help-contact-icon email"><Mail size={18} /></span><span><strong>Send an email</strong><small>portigliattimarco@gmail.com</small></span><ArrowRight size={16} /></a></div><p className="help-note">You can also share ideas for making the rota easier, clearer, or more useful for the crew.</p></section></>;
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
