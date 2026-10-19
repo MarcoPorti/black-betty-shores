@@ -21,21 +21,9 @@ const DEFAULT_CHORES: Chore[] = [
   { id: "dinner", name: "Dinner", emoji: "🍲", required: 1, frequency: "daily", days: [0, 1, 2, 3, 4, 5, 6] },
 ];
 
-function demoPeople(weekStart: string): Person[] {
-  const day = (offset: number) => dateKey(addDays(parseDateKey(weekStart), offset));
-  return [
-    { id: "alex", name: "Alex", arrival: day(-2), departure: day(7), cannot: [], prefers: ["water"], dislikes: ["dishes"] },
-    { id: "bea", name: "Bea", arrival: day(-1), departure: day(6), cannot: ["watch"], prefers: ["breakfast"], dislikes: [] },
-    { id: "nico", name: "Nico", arrival: day(0), departure: day(10), cannot: [], prefers: ["watch"], dislikes: ["jaro"] },
-    { id: "rita", name: "Rita", arrival: day(1), departure: day(8), cannot: ["water"], prefers: [], dislikes: ["dinner"] },
-    { id: "sam", name: "Sam", arrival: day(-3), departure: day(4), cannot: [], prefers: ["dinner"], dislikes: [] },
-    { id: "tino", name: "Tino", arrival: day(2), departure: day(12), cannot: [], prefers: [], dislikes: ["watch"] },
-  ];
-}
-
 function initialState(): BoatState {
   const weekStart = dateKey(startOfWeek(new Date()));
-  const people = demoPeople(weekStart);
+  const people: Person[] = [];
   return { version: 1, weekStart, people, chores: DEFAULT_CHORES, schedule: generateWeek(people, DEFAULT_CHORES, weekStart), onboardingComplete: false };
 }
 
@@ -63,7 +51,10 @@ function App() {
   useEffect(() => {
     loadState().then((saved) => {
       if (saved) {
-        setState({ ...saved, schedule: repairDuplicateTaskAssignments(saved.schedule) });
+        const freshOnboardingState = !saved.onboardingComplete
+          ? { ...saved, people: [], schedule: generateWeek([], saved.chores, saved.weekStart) }
+          : saved;
+        setState({ ...freshOnboardingState, schedule: repairDuplicateTaskAssignments(freshOnboardingState.schedule) });
         setShowOnboarding(!saved.onboardingComplete);
       } else setShowOnboarding(true);
       setLoaded(true);
@@ -325,11 +316,11 @@ function Onboarding({ onStart, onImport }: { onStart: () => void; onImport: (inp
         </button>
         <button className="onboarding-option" onClick={onStart}>
           <span className="onboarding-option-icon"><UserRoundPlus size={19} /></span>
-          <span><strong>Start adding people</strong><small>Open the crew list and edit the starter setup.</small></span>
+          <span><strong>Start adding people</strong><small>Open an empty crew list and add your people.</small></span>
           <ArrowRight size={16} />
         </button>
       </div>
-      <small className="onboarding-foot"><Check size={13} /> A sample crew is ready if you want to explore first.</small>
+      <small className="onboarding-foot"><Check size={13} /> Your crew list starts empty — add people or import a previous crew.</small>
     </> : <>
       <button className="onboarding-back" onClick={() => { setMode("choices"); setError(null); }}><ArrowLeft size={15} />Back to setup choices</button>
       <div className="eyebrow">BRING THEM ABOARD</div>
