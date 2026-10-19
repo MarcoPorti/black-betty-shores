@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowLeft, ArrowLeftRight, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Info, Menu, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Ellipsis, Info, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
 import { Assignment, BoatState, Chore, DAY_NAMES, Frequency, LONG_DAY_NAMES, Person, addDays, dateKey, formatRange, formatShortDate, parseDateKey, startOfWeek, weekDates } from "./types";
 import { generateDay, generateWeek, repairDuplicateTaskAssignments, warningsForDay } from "./lib/generator";
 import { decodeBackup, encodeBackup } from "./lib/backup";
@@ -50,7 +50,7 @@ function App() {
   const [backupText, setBackupText] = useState("");
   const [restoreText, setRestoreText] = useState("");
   const [backupError, setBackupError] = useState<string | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [regenerateMode, setRegenerateMode] = useState<"day" | "remaining">("day");
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -129,7 +129,7 @@ function App() {
     setBackupText(encodeBackup(state));
     setRestoreText("");
     setView("backup");
-    setMobileMenuOpen(false);
+    setMoreOpen(false);
   }
 
   function restoreBackup() {
@@ -180,23 +180,23 @@ function App() {
   }
 
   if (!loaded) return <div className="loading-screen"><Waves size={28} /><span>Reading your local deck…</span></div>;
+  if (showOnboarding) return <Onboarding onStart={() => finishOnboarding("people")} onImport={importOnboardingBackup} />;
 
   return (
     <div className="app-shell">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
-        <button className="icon-button mobile-menu-button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Open menu"><Menu size={22} /></button>
         <div className="brand"><span>Black Betty Shores</span></div>
         <div className="top-actions"><span className="saved-state"><span className="pulse-dot" /> Saved locally</span></div>
       </header>
-      <div className={`app-layout ${mobileMenuOpen ? "menu-open" : ""}`}>
+      <div className="app-layout">
         <aside className="sidebar">
           <div className="sidebar-kicker">YOUR BOAT</div>
           <div className="boat-card"><div><strong>Black Betty Shores</strong></div></div>
           <nav className="nav-stack" aria-label="Main navigation">
-            <NavButton icon={<CalendarDays size={18} />} label="This week" active={view === "week"} onClick={() => { setView("week"); setMobileMenuOpen(false); }} badge={currentWarnings.length || undefined} />
-            <NavButton icon={<Users size={18} />} label="People" active={view === "people"} onClick={() => { setView("people"); setMobileMenuOpen(false); }} />
-            <NavButton icon={<Settings2 size={18} />} label="Chores & rules" active={view === "chores"} onClick={() => { setView("chores"); setMobileMenuOpen(false); }} />
+            <NavButton icon={<CalendarDays size={18} />} label="This week" active={view === "week"} onClick={() => setView("week")} badge={currentWarnings.length || undefined} />
+            <NavButton icon={<Users size={18} />} label="People" active={view === "people"} onClick={() => setView("people")} />
+            <NavButton icon={<Settings2 size={18} />} label="Chores & rules" active={view === "chores"} onClick={() => setView("chores")} />
             <NavButton icon={<Share2 size={18} />} label="Backup & share" active={view === "backup"} onClick={openBackup} />
           </nav>
           <div className="sidebar-footer"><div className="tip-card"><Sparkles size={16} /><p>Small crew? Leave spots open and Tideboard will flag them for you.</p></div><span className="version">v1.0 · works offline</span></div>
@@ -208,14 +208,30 @@ function App() {
           {view === "backup" && <BackupView backupText={backupText} restoreText={restoreText} setRestoreText={setRestoreText} copyBackup={copyBackup} restoreBackup={restoreBackup} error={backupError} />}
         </main>
       </div>
+      <MobileNav view={view} setView={setView} moreOpen={moreOpen} setMoreOpen={setMoreOpen} onBackup={openBackup} />
       {toast && <div className="toast"><Check size={16} />{toast}</div>}
-      {showOnboarding && <Onboarding onStart={() => finishOnboarding("people")} onImport={importOnboardingBackup} />}
     </div>
   );
 }
 
 function NavButton({ icon, label, active, onClick, badge }: { icon: React.ReactNode; label: string; active: boolean; onClick: () => void; badge?: number }) {
   return <button className={`nav-item ${active ? "active" : ""}`} onClick={onClick}>{icon}<span>{label}</span>{badge ? <em>{badge}</em> : null}</button>;
+}
+
+function MobileNav({ view, setView, moreOpen, setMoreOpen, onBackup }: { view: View; setView: (view: View) => void; moreOpen: boolean; setMoreOpen: (open: boolean) => void; onBackup: () => void }) {
+  function choose(nextView: View) {
+    setView(nextView);
+    setMoreOpen(false);
+  }
+  return <>
+    {moreOpen && <button className="more-scrim" aria-label="Close more menu" onClick={() => setMoreOpen(false)} />}
+    {moreOpen && <div className="more-sheet"><div className="more-sheet-handle" /><div className="section-label">MORE ON DECK</div><button onClick={() => choose("chores")}><Settings2 size={17} /><span><strong>Chores & rules</strong><small>Adjust tasks and preferences.</small></span><ArrowRight size={15} /></button><button onClick={onBackup}><Share2 size={17} /><span><strong>Backup & share</strong><small>Copy or restore your boat setup.</small></span><ArrowRight size={15} /></button></div>}
+    <nav className="mobile-nav" aria-label="Mobile navigation">
+      <button className={view === "week" ? "active" : ""} onClick={() => choose("week")}><CalendarDays size={19} /><span>Week</span></button>
+      <button className={view === "people" ? "active" : ""} onClick={() => choose("people")}><Users size={19} /><span>Crew</span></button>
+      <button className={`${moreOpen || view === "chores" || view === "backup" ? "active" : ""}`} onClick={() => setMoreOpen(!moreOpen)}><Ellipsis size={20} /><span>More</span></button>
+    </nav>
+  </>;
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: React.ReactNode }) {
@@ -309,7 +325,7 @@ function Onboarding({ onStart, onImport }: { onStart: () => void; onImport: (inp
     if (importError) setError(importError);
   }
 
-  return <div className="modal-backdrop onboarding-backdrop"><div className="onboarding-card">
+  return <div className="onboarding-screen"><header className="onboarding-topbar"><span>Black Betty Shores</span></header><main className="onboarding-page"><div className="onboarding-card">
     <div className="onboarding-art"><div className="sun-glow" /><Waves size={47} /></div>
     {mode === "choices" ? <>
       <div className="eyebrow">WELCOME ABOARD</div>
@@ -338,7 +354,7 @@ function Onboarding({ onStart, onImport }: { onStart: () => void; onImport: (inp
       <Button className="button primary full-button" onClick={submitImport}><ClipboardPaste size={16} />Validate & import crew</Button>
       <small className="onboarding-foot">Your starter setup will be replaced only after the backup is validated.</small>
     </>}
-  </div></div>;
+  </div></main></div>;
 }
 
 export default App;
