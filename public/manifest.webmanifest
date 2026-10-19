@@ -1,0 +1,9 @@
+{
+  "name": "Tideboard Boat Chores",
+  "short_name": "Tideboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c171c",
+  "theme_color": "#0c171c",
+  "icons": []
+}
