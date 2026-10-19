@@ -6,7 +6,7 @@ export interface GenerateOptions {
 }
 
 function isAvailable(person: Person, date: string, chore: Chore): boolean {
-  return date > person.arrival && date < person.departure && !person.cannot.includes(chore.id);
+  return date > person.arrival && (!person.departure || date < person.departure) && !person.cannot.includes(chore.id);
 }
 
 function scoreCandidate(person: Person, chore: Chore, date: string, assignments: Assignment[], previousDay: Assignment[], history: Schedule, rng: () => number): number {
@@ -74,7 +74,7 @@ export function warningsForDay(state: Pick<BoatState, "people" | "chores" | "sch
     if (chore) warnings.push(`No eligible crew for ${chore.emoji} ${chore.name}`);
   }
   const dayPeople = new Set(assignments.filter((item) => item.personId).map((item) => item.personId));
-  const eligiblePeople = state.people.filter((person) => date > person.arrival && date < person.departure).length;
+  const eligiblePeople = state.people.filter((person) => date > person.arrival && (!person.departure || date < person.departure)).length;
   if (eligiblePeople === 0 && assignments.length > 0) warnings.push("Nobody is aboard for this day");
   if (dayPeople.size < Math.min(eligiblePeople, 2) && dayIndex >= 0) {
     // This line intentionally stays quiet for small crews; only assignment gaps are actionable.

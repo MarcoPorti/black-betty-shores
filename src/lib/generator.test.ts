@@ -19,6 +19,12 @@ describe("boat chore generator", () => {
     expect(generateDay(people, chores, "2026-10-25", 6, {}, { rng: () => 0.5 }).every((assignment) => assignment.personId === null)).toBe(true);
   });
 
+  it("keeps people with no leaving date available", () => {
+    const ongoingPerson: Person = { id: "ongoing", name: "Ongoing", arrival: "2026-10-18", departure: "", cannot: [], prefers: [], dislikes: [] };
+    const schedule = generateDay([ongoingPerson], chores, "2026-10-26", 0, {}, { rng: () => 0.5 });
+    expect(schedule.some((assignment) => assignment.personId === "ongoing")).toBe(true);
+  });
+
   it("respects strict cannot-do rules", () => {
     const schedule = generateDay(people, chores, "2026-10-21", 2, {}, { rng: () => 0.5 });
     expect(schedule.filter((assignment) => assignment.choreId === "watch").every((assignment) => assignment.personId !== "b")).toBe(true);
