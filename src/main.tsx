@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowLeft, ArrowLeftRight, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Ellipsis, Info, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, Clipboard, ClipboardPaste, Download, Ellipsis, Info, Plus, RefreshCw, Settings2, Share2, Sparkles, Trash2, UserRoundPlus, Users, X, Waves } from "lucide-react";
 import { Assignment, BoatState, Chore, DAY_NAMES, Frequency, LONG_DAY_NAMES, Person, addDays, dateKey, formatRange, formatShortDate, parseDateKey, startOfWeek, weekDates } from "./types";
 import { generateDay, generateWeek, repairDuplicateTaskAssignments, warningsForDay } from "./lib/generator";
 import { decodeBackup, encodeBackup } from "./lib/backup";
@@ -102,17 +102,6 @@ function App() {
     setToast("Whole week regenerated");
   }
 
-  function swapAssignments(first: Assignment, second: Assignment) {
-    const nextSchedule = { ...state.schedule, [currentDate]: [...currentAssignments] };
-    const firstIndex = nextSchedule[currentDate].indexOf(first);
-    const secondIndex = nextSchedule[currentDate].indexOf(second);
-    if (firstIndex < 0 || secondIndex < 0) return;
-    const firstPerson = nextSchedule[currentDate][firstIndex].personId;
-    nextSchedule[currentDate][firstIndex] = { ...nextSchedule[currentDate][firstIndex], personId: nextSchedule[currentDate][secondIndex].personId };
-    nextSchedule[currentDate][secondIndex] = { ...nextSchedule[currentDate][secondIndex], personId: firstPerson };
-    updateState({ schedule: nextSchedule });
-  }
-
   function setAssignment(index: number, personId: string | null) {
     const day = [...currentAssignments];
     day[index] = { ...day[index], personId };
@@ -202,7 +191,7 @@ function App() {
           <div className="sidebar-footer"><div className="tip-card"><Sparkles size={16} /><p>Small crew? Leave spots open and Tideboard will flag them for you.</p></div><span className="version">v1.0 · works offline</span></div>
         </aside>
         <main className="main-content">
-          {view === "week" && <WeekView state={state} dates={dates} selectedDay={selectedDay} setSelectedDay={setSelectedDay} currentDate={currentDate} assignments={currentAssignments} warnings={currentWarnings} setAssignment={setAssignment} swapAssignments={swapAssignments} regenerate={regenerate} regenerateMode={regenerateMode} setRegenerateMode={setRegenerateMode} shiftWeek={shiftWeek} onBackup={openBackup} onExport={() => void downloadWeekPng(state).then(() => setToast("High-resolution PNG downloaded")).catch(() => setToast("PNG export failed"))} onRegenerateWholeWeek={regenerateWholeWeek} />}
+          {view === "week" && <WeekView state={state} dates={dates} selectedDay={selectedDay} setSelectedDay={setSelectedDay} currentDate={currentDate} assignments={currentAssignments} warnings={currentWarnings} setAssignment={setAssignment} regenerate={regenerate} regenerateMode={regenerateMode} setRegenerateMode={setRegenerateMode} shiftWeek={shiftWeek} onBackup={openBackup} onExport={() => void downloadWeekPng(state).then(() => setToast("High-resolution PNG downloaded")).catch(() => setToast("PNG export failed"))} onRegenerateWholeWeek={regenerateWholeWeek} />}
           {view === "people" && <PeopleView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "chores" && <ChoresView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "backup" && <BackupView backupText={backupText} restoreText={restoreText} setRestoreText={setRestoreText} copyBackup={copyBackup} restoreBackup={restoreBackup} error={backupError} />}
@@ -238,7 +227,7 @@ function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; 
   return <div className="page-header"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{description}</p></div>{action && <div className="header-action">{action}</div>}</div>;
 }
 
-function WeekView({ state, dates, selectedDay, setSelectedDay, currentDate, assignments, warnings, setAssignment, swapAssignments, regenerate, regenerateMode, setRegenerateMode, shiftWeek, onBackup, onExport, onRegenerateWholeWeek }: { state: BoatState; dates: string[]; selectedDay: number; setSelectedDay: (value: number) => void; currentDate: string; assignments: Assignment[]; warnings: string[]; setAssignment: (index: number, personId: string | null) => void; swapAssignments: (first: Assignment, second: Assignment) => void; regenerate: (mode?: "day" | "remaining") => void; regenerateMode: "day" | "remaining"; setRegenerateMode: (mode: "day" | "remaining") => void; shiftWeek: (amount: number) => void; onBackup: () => void; onExport: () => void; onRegenerateWholeWeek: () => void }) {
+function WeekView({ state, dates, selectedDay, setSelectedDay, currentDate, assignments, warnings, setAssignment, regenerate, regenerateMode, setRegenerateMode, shiftWeek, onBackup, onExport, onRegenerateWholeWeek }: { state: BoatState; dates: string[]; selectedDay: number; setSelectedDay: (value: number) => void; currentDate: string; assignments: Assignment[]; warnings: string[]; setAssignment: (index: number, personId: string | null) => void; regenerate: (mode?: "day" | "remaining") => void; regenerateMode: "day" | "remaining"; setRegenerateMode: (mode: "day" | "remaining") => void; shiftWeek: (amount: number) => void; onBackup: () => void; onExport: () => void; onRegenerateWholeWeek: () => void }) {
   const grouped = state.chores.map((chore) => ({ chore, slots: assignments.map((assignment, index) => ({ assignment, index })).filter(({ assignment }) => assignment.choreId === chore.id) }));
   const assignedToday = assignments.filter((assignment) => assignment.personId).length;
   const totalToday = assignments.length;
@@ -249,25 +238,14 @@ function WeekView({ state, dates, selectedDay, setSelectedDay, currentDate, assi
     <section className="surface day-editor">
       <div className="surface-heading"><div><div className="section-label">{LONG_DAY_NAMES[selectedDay].toUpperCase()} · {formatShortDate(currentDate)}</div><h2>Today on deck</h2><p>{assignedToday} of {totalToday} spots assigned · tap a name to reassign</p></div></div>
       {warnings.length > 0 && <div className="warning-strip"><Info size={16} /><div><strong>{warnings.length} thing{warnings.length === 1 ? "" : "s"} need attention</strong><span>{warnings[0]}{warnings.length > 1 ? ` · +${warnings.length - 1} more` : ""}</span></div></div>}
-      <div className="chore-list">{grouped.map(({ chore, slots }) => <ChoreAssignmentRow key={chore.id} chore={chore} slots={slots} people={state.people} setAssignment={setAssignment} swapAssignments={swapAssignments} />)}</div>
+      <div className="chore-list">{grouped.map(({ chore, slots }) => <ChoreAssignmentRow key={chore.id} chore={chore} slots={slots} people={state.people} setAssignment={setAssignment} />)}</div>
     </section>
     <div className="whole-week-action"><div><strong>Start this week over</strong><span>Regenerate every assignment while keeping your crew and rules.</span></div><button className="button secondary" onClick={onRegenerateWholeWeek}><RefreshCw size={15} />Regenerate week</button></div>
   </>;
 }
 
-function ChoreAssignmentRow({ chore, slots, people, setAssignment, swapAssignments }: { chore: Chore; slots: { assignment: Assignment; index: number }[]; people: Person[]; setAssignment: (index: number, personId: string | null) => void; swapAssignments: (first: Assignment, second: Assignment) => void }) {
-  const [swapMode, setSwapMode] = useState(false);
-  const [firstSlot, setFirstSlot] = useState<Assignment | null>(null);
-  function pickSlot(assignment: Assignment) {
-    if (!swapMode) return;
-    if (!firstSlot) setFirstSlot(assignment);
-    else {
-      swapAssignments(firstSlot, assignment);
-      setFirstSlot(null);
-      setSwapMode(false);
-    }
-  }
-  return <div className="chore-row"><div className="chore-title"><span className="chore-emoji">{chore.emoji}</span><div><strong>{chore.name}</strong><small>{chore.required} {chore.required === 1 ? "spot" : "spots"}</small></div></div><div className="assignment-slots">{slots.map(({ assignment, index }) => <div className={`assignment-slot ${firstSlot === assignment ? "swap-selected" : ""}`} key={`${assignment.choreId}-${index}`} onClick={() => pickSlot(assignment)}><select value={assignment.personId ?? ""} onClick={(event) => event.stopPropagation()} onChange={(event) => setAssignment(index, event.target.value || null)} aria-label={`${chore.name} assignment`}><option value="">Open spot</option>{people.filter((person) => person.id === assignment.personId || !slots.some((slot) => slot.assignment !== assignment && slot.assignment.personId === person.id)).map((person) => <option value={person.id} key={person.id}>{person.name}</option>)}</select></div>)}</div><button className={`swap-button ${swapMode ? "on" : ""}`} onClick={() => { setSwapMode(!swapMode); setFirstSlot(null); }}>{swapMode ? <X size={14} /> : <ArrowLeftRight size={14} />}<span>{swapMode ? "Cancel" : "Swap"}</span></button>{swapMode && <div className="swap-helper">Tap two spots in this row to swap them.</div>}</div>;
+function ChoreAssignmentRow({ chore, slots, people, setAssignment }: { chore: Chore; slots: { assignment: Assignment; index: number }[]; people: Person[]; setAssignment: (index: number, personId: string | null) => void }) {
+  return <div className="chore-row"><div className="chore-title"><span className="chore-emoji">{chore.emoji}</span><div><strong>{chore.name}</strong><small>{chore.required} {chore.required === 1 ? "spot" : "spots"}</small></div></div><div className="assignment-slots">{slots.map(({ assignment, index }) => <div className="assignment-slot" key={`${assignment.choreId}-${index}`}><select value={assignment.personId ?? ""} onChange={(event) => setAssignment(index, event.target.value || null)} aria-label={`${chore.name} assignment`}><option value="">Open spot</option>{people.filter((person) => person.id === assignment.personId || !slots.some((slot) => slot.assignment !== assignment && slot.assignment.personId === person.id)).map((person) => <option value={person.id} key={person.id}>{person.name}</option>)}</select></div>)}</div></div>;
 }
 
 function PeopleView({ state, updateState, onRegenerate }: { state: BoatState; updateState: (next: Partial<BoatState>) => void; onRegenerate: () => void }) {
