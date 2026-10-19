@@ -5,7 +5,7 @@ import { Assignment, BoatState, Chore, DAY_NAMES, Frequency, LONG_DAY_NAMES, Per
 import { generateDay, generateWeek, repairDuplicateTaskAssignments, warningsForDay } from "./lib/generator";
 import { decodeBackup, encodeBackup } from "./lib/backup";
 import { loadState, saveState } from "./lib/storage";
-import { downloadWeekPng } from "./lib/export";
+import { shareWeekPng } from "./lib/export";
 import { Button } from "./components/ui/button";
 import "./styles.css";
 
@@ -157,6 +157,16 @@ function App() {
     setSelectedDay(0);
   }
 
+  async function exportWeek() {
+    try {
+      const result = await shareWeekPng(state);
+      setToast(result === "shared" ? "PNG ready to send" : "High-resolution PNG downloaded");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setToast("PNG export failed");
+    }
+  }
+
   function finishOnboarding(nextView: View = "week") {
     updateState({ onboardingComplete: true });
     setShowOnboarding(false);
@@ -187,7 +197,7 @@ function App() {
           <div className="sidebar-footer"><div className="tip-card"><Sparkles size={16} /><p>Small crew? Leave spots open and Tideboard will flag them for you.</p></div><span className="version">v1.0 · works offline</span></div>
         </aside>
         <main className="main-content">
-          {view === "week" && <WeekView state={state} dates={dates} selectedDay={selectedDay} setSelectedDay={setSelectedDay} currentDate={currentDate} assignments={currentAssignments} warnings={currentWarnings} setAssignment={setAssignment} regenerate={regenerate} regenerateMode={regenerateMode} setRegenerateMode={setRegenerateMode} shiftWeek={shiftWeek} onBackup={openBackup} onExport={() => void downloadWeekPng(state).then(() => setToast("High-resolution PNG downloaded")).catch(() => setToast("PNG export failed"))} onRegenerateWholeWeek={regenerateWholeWeek} />}
+          {view === "week" && <WeekView state={state} dates={dates} selectedDay={selectedDay} setSelectedDay={setSelectedDay} currentDate={currentDate} assignments={currentAssignments} warnings={currentWarnings} setAssignment={setAssignment} regenerate={regenerate} regenerateMode={regenerateMode} setRegenerateMode={setRegenerateMode} shiftWeek={shiftWeek} onBackup={openBackup} onExport={() => void exportWeek()} onRegenerateWholeWeek={regenerateWholeWeek} />}
           {view === "people" && <PeopleView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "chores" && <ChoresView state={state} updateState={updateState} onRegenerate={() => regenerate("remaining")} />}
           {view === "backup" && <BackupView backupText={backupText} restoreText={restoreText} setRestoreText={setRestoreText} copyBackup={copyBackup} restoreBackup={restoreBackup} error={backupError} />}

@@ -41,7 +41,7 @@ export function buildWeekSvg(state: BoatState): string {
   return lines.join("");
 }
 
-export async function downloadWeekPng(state: BoatState): Promise<void> {
+async function renderWeekPng(state: BoatState): Promise<Blob> {
   const svg = buildWeekSvg(state);
   const blob = new Blob([svg], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
@@ -56,13 +56,33 @@ export async function downloadWeekPng(state: BoatState): Promise<void> {
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
     const png = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!png) throw new Error("Could not make a PNG.");
-    const downloadUrl = URL.createObjectURL(png);
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `tideboard-${state.weekStart}.png`;
-    link.click();
-    URL.revokeObjectURL(downloadUrl);
+    return png;
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+function downloadPng(png: Blob, state: BoatState): void {
+  const downloadUrl = URL.createObjectURL(png);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = `black-betty-shores-${state.weekStart}.png`;
+  link.click();
+  URL.revokeObjectURL(downloadUrl);
+}
+
+export async function shareWeekPng(state: BoatState): Promise<"shared" | "downloaded"> {
+  const png = await renderWeekPng(state);
+  const filename = `black-betty-shores-${state.weekStart}.png`;
+  const file = new File([png], filename, { type: "image/png" });
+  if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+    await navigator.share({ title: "Black Betty Shores · weekly chores", files: [file] });
+    return "shared";
+  }
+  downloadPng(png, state);
+  return "downloaded";
+}
+
+export async function downloadWeekPng(state: BoatState): Promise<void> {
+  downloadPng(await renderWeekPng(state), state);
 }
