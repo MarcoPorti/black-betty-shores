@@ -32,7 +32,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .ambient { position: fixed; width: 380px; height: 380px; filter: blur(120px); opacity: .12; pointer-events: none; border-radius: 50%; }
 .ambient-one { right: -180px; top: 260px; background: #55c9a3; }
 .ambient-two { left: 12%; bottom: -270px; background: #356d72; }
-.topbar { height: 66px; border-bottom: 1px solid rgba(92, 135, 133, .19); display: flex; align-items: center; gap: 12px; padding: 0 34px; position: relative; z-index: 2; background: rgba(8, 18, 23, .56); backdrop-filter: blur(18px); }
+.topbar { height: 66px; border-bottom: 0; display: flex; align-items: center; gap: 12px; padding: 0 34px; position: relative; z-index: 2; background: transparent; backdrop-filter: none; }
 .brand { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; font-family: "Bree Serif", Georgia, serif; font-size: 18px; letter-spacing: .01em; white-space: nowrap; }
 .brand-mark { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 9px; color: #092019; background: var(--mint); }
 .brand-dot { color: #54726f; margin-left: -3px; }
@@ -230,7 +230,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
 
 /* full-page onboarding and mobile navigation */
 .onboarding-screen { min-height: 100vh; color: var(--text); background: radial-gradient(circle at 76% 8%, rgba(46, 103, 100, .2), transparent 30rem), linear-gradient(135deg, #0b161b 0%, #0c171c 65%, #0b151a 100%); }
-.onboarding-topbar { height: 66px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(92, 135, 133, .19); color: var(--text); font: 18px "Bree Serif", Georgia, serif; letter-spacing: .01em; background: rgba(8, 18, 23, .56); }
+.onboarding-topbar { height: 66px; display: flex; align-items: center; justify-content: center; border-bottom: 0; color: var(--text); font: 18px "Bree Serif", Georgia, serif; letter-spacing: .01em; background: transparent; }
 .onboarding-page { min-height: calc(100vh - 66px); display: grid; place-items: center; padding: 48px 20px 68px; }
 .onboarding-page .onboarding-card { width: min(100%, 580px); padding: 0; border: 0; background: transparent; box-shadow: none; }
 .onboarding-page .onboarding-art { height: 154px; margin: 0 0 30px; border-radius: 18px; }
