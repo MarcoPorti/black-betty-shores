@@ -178,6 +178,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
 .rule-chip.selected.danger { color: #f2c0bb; border-color: rgba(234, 141, 133, .4); background: rgba(234, 141, 133, .12); }.rule-chip.selected.good { color: #c9eed7; border-color: rgba(154, 220, 183, .4); background: rgba(154, 220, 183, .12); }.rule-chip.selected.warn { color: #f3cba4; border-color: rgba(242, 170, 116, .4); background: rgba(242, 170, 116, .12); }
 .delete-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; color: #d88b86; border: 0; padding: 0; background: transparent; font-size: 10px; }
 .bottom-action { display: flex; justify-content: flex-end; margin-top: 16px; }
+.people-add-action { position: sticky; bottom: 0; z-index: 4; display: flex; justify-content: flex-end; margin-top: 18px; padding: 12px 0; background: linear-gradient(180deg, rgba(11, 22, 27, 0), rgba(11, 22, 27, .96) 32%); }
 .whole-week-action { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 22px; padding: 16px 18px; border: 1px solid rgba(98, 143, 139, .2); border-radius: 12px; background: rgba(20, 40, 45, .56); }
 .whole-week-action strong, .whole-week-action span { display: block; }
 .whole-week-action strong { font-size: 12px; }
@@ -275,6 +276,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
   .person-form-modal .modal-actions { position: sticky; bottom: 0; flex: 0 0 auto; margin: 0 -18px; margin-top: auto; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(98, 143, 139, .2); background: #13252a; }
   .person-form-modal .modal-actions .button { min-width: 0; min-height: 46px; flex: 1; padding: 10px 12px; }
   .person-form-modal input:not([type="checkbox"]), .person-form-modal select { font-size: 16px; }
+  .people-add-action { position: fixed; left: 14px; right: 14px; bottom: calc(82px + env(safe-area-inset-bottom)); justify-content: stretch; margin: 0; padding: 12px 0; }
+  .people-add-action .button { width: 100%; min-height: 46px; }
 }
 
 @media (max-width: 500px) {
