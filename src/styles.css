@@ -157,11 +157,14 @@ select { border: 1px solid rgba(113, 157, 151, .24); border-radius: 8px; color: 
 .info-callout { color: #a5c8bf; background: rgba(95, 177, 154, .08); border-color: rgba(95, 177, 154, .2); margin: -5px 0 21px; font-size: 12px; line-height: 1.45; }
 .people-stack, .chore-settings { display: grid; gap: 10px; }
 .person-card, .chore-setting-card { border: 1px solid rgba(98, 143, 139, .2); background: rgba(20, 40, 45, .74); border-radius: 13px; overflow: hidden; }
-.person-main { min-height: 71px; padding: 13px 15px; display: flex; gap: 11px; align-items: center; }
+.person-main { min-height: 71px; padding: 16px 15px; display: flex; gap: 11px; align-items: center; cursor: pointer; }
+.person-main:hover { background: rgba(88, 161, 125, .06); }
+.person-main:focus-visible { outline: 2px solid var(--mint); outline-offset: -2px; }
 .person-identity { min-width: 0; flex: 1; }
-.person-name { width: 100%; border: 0; color: #e7f0e8; background: transparent; font: 400 14px "Bree Serif", Georgia, serif; outline: 0; padding: 2px 0; }
-.person-dates { display: block; color: #77918d; margin-top: 4px; font: 10px "DM Mono", monospace; }
-.person-dates small { color: #56706d; font-family: "DM Sans", sans-serif; }
+.person-name-display { display: block; color: #e7f0e8; font: 400 16px "Bree Serif", Georgia, serif; }
+.person-expand-icon { flex: 0 0 auto; color: var(--muted); transition: transform .18s ease; }
+.person-detail-name { margin-bottom: 2px; }
+.person-name-input { width: 100%; border: 1px solid rgba(113, 157, 151, .22); border-radius: 7px; color: #e7f0e8; background: rgba(10, 25, 30, .54); padding: 9px 10px; font: 14px "DM Sans", sans-serif; outline: 0; text-transform: none; letter-spacing: 0; }
 .rotate { transform: rotate(180deg); }
 .person-details { border-top: 1px solid rgba(98, 143, 139, .17); padding: 18px 18px 16px; background: rgba(11, 26, 31, .27); }
 .date-fields, .chore-setting-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -229,7 +232,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
   .main-content { padding: 42px 22px 70px; }.page-header { margin-bottom: 31px; }.page-header h1 { font-size: 34px; }.page-header p { max-width: 410px; }.header-action .button { padding: 9px 10px; }.header-action .button svg { margin: 0; }.header-action .button:not(:has(svg)) { display: none; }
   .eyebrow, .section-label { font-size: 11px; }.surface-heading p, .backup-card p, .restore-card p { font-size: 14px; }.day-tabs { gap: 4px; }.day-tab { padding: 10px 2px 9px; }.day-tab strong { font-size: 17px; }.day-tab span { letter-spacing: .04em; font-size: 10px; }.day-tab small { font-size: 10px; }
   .chore-row { grid-template-columns: 1fr; gap: 8px; }.assignment-slots { grid-column: 1 / -1; grid-row: 2; padding-left: 42px; }
-  .surface-heading { flex-direction: column; }.heading-actions { width: 100%; }.heading-actions .button { width: 100%; }.regenerate-panel { align-items: flex-start; flex-direction: column; }.regen-actions { width: 100%; }.regen-actions select, .regen-actions .button { flex: 1; }.grid-corner { font-size: 10px; }.grid-day strong { font-size: 12px; }.grid-chore { font-size: 12px; }.warning-strip strong, .warning-strip span { font-size: 12px; }.person-dates { font-size: 11px; }.checkbox-label small { font-size: 11px; }.rule-heading strong { font-size: 12px; }.rule-hint { font-size: 10px; }.rule-chip { padding: 7px 9px; font-size: 12px; }.whole-week-action strong { font-size: 13px; }.whole-week-action span { font-size: 12px; }
+  .surface-heading { flex-direction: column; }.heading-actions { width: 100%; }.heading-actions .button { width: 100%; }.regenerate-panel { align-items: flex-start; flex-direction: column; }.regen-actions { width: 100%; }.regen-actions select, .regen-actions .button { flex: 1; }.grid-corner { font-size: 10px; }.grid-day strong { font-size: 12px; }.grid-chore { font-size: 12px; }.warning-strip strong, .warning-strip span { font-size: 12px; }.checkbox-label small { font-size: 11px; }.rule-heading strong { font-size: 12px; }.rule-hint { font-size: 10px; }.rule-chip { padding: 7px 9px; font-size: 12px; }.whole-week-action strong { font-size: 13px; }.whole-week-action span { font-size: 12px; }
   .backup-layout { grid-template-columns: 1fr; }.restore-row { grid-template-columns: 1fr; }.restore-row .button { width: 100%; }.rule-groups { grid-template-columns: 1fr; gap: 16px; }
 }
 @media (max-width: 500px) {
