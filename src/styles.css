@@ -165,7 +165,13 @@ select { border: 1px solid rgba(113, 157, 151, .24); border-radius: 8px; color: 
 .person-expand-icon { flex: 0 0 auto; color: var(--muted); transition: transform .18s ease; }
 .person-detail-name { margin-bottom: 2px; }
 .person-name-input { width: 100%; border: 1px solid rgba(113, 157, 151, .22); border-radius: 7px; color: #e7f0e8; background: rgba(10, 25, 30, .54); padding: 9px 10px; font: 14px "DM Sans", sans-serif; outline: 0; text-transform: none; letter-spacing: 0; }
-.crew-summary { margin-bottom: 28px; }
+.crew-summary { display: flex; justify-content: center; margin-bottom: 28px; }
+.crew-summary .crew-count { font-size: 15px; }
+.crew-summary .crew-count strong { font-size: 16px; }
+.empty-crew-state { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; margin: 0 auto; padding: 30px 20px; border: 1px dashed rgba(118, 179, 159, .28); border-radius: 15px; color: var(--muted); text-align: center; background: rgba(20, 40, 45, .36); }
+.empty-crew-state svg { color: var(--mint); }
+.empty-crew-state h2 { margin: 0; color: var(--text); font: 400 21px "Bree Serif", Georgia, serif; }
+.empty-crew-state p { max-width: 290px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .rotate { transform: rotate(180deg); }
 .person-details { border-top: 1px solid rgba(98, 143, 139, .17); padding: 18px 18px 16px; background: rgba(11, 26, 31, .27); }
 .date-fields, .chore-setting-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -186,6 +192,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
 .rule-chip.selected.danger { color: #f2c0bb; border-color: rgba(234, 141, 133, .4); background: rgba(234, 141, 133, .12); }.rule-chip.selected.good { color: #c9eed7; border-color: rgba(154, 220, 183, .4); background: rgba(154, 220, 183, .12); }.rule-chip.selected.warn { color: #f3cba4; border-color: rgba(242, 170, 116, .4); background: rgba(242, 170, 116, .12); }
 .delete-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; color: #d88b86; border: 0; padding: 0; background: transparent; font-size: 11px; }
 .bottom-action { display: flex; justify-content: flex-end; margin-top: 16px; }
+.crew-update-action { justify-content: center; margin-top: 22px; }
+.crew-update-action .button { padding: 9px 13px; font-size: 12px; }
 .people-add-action { position: sticky; bottom: 0; z-index: 4; display: flex; justify-content: flex-end; margin-top: 18px; padding: 12px 0; background: linear-gradient(180deg, rgba(11, 22, 27, 0), rgba(11, 22, 27, .96) 32%); }
 .whole-week-action { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 22px; padding: 16px 18px; border: 1px solid rgba(98, 143, 139, .2); border-radius: 12px; background: rgba(20, 40, 45, .56); }
 .whole-week-action strong, .whole-week-action span { display: block; }
